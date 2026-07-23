@@ -9,6 +9,7 @@ import httpx
 from mill._http_common import (
     build_platform_client,
     encode_metadata_entity_path_segment,
+    encode_metadata_prefixed_path_segment,
     raise_for_status,
 )
 from mill.auth import Credential
@@ -64,6 +65,13 @@ class MetadataClient:
     def _entity_segment(self, entity_id: str) -> str:
         return encode_metadata_entity_path_segment(entity_id)
 
+    @staticmethod
+    def _facet_type_segment(type_key: str) -> str:
+        return encode_metadata_prefixed_path_segment(
+            type_key,
+            "urn:mill/metadata/facet-type:",
+        )
+
     def close(self) -> None:
         """Close the underlying HTTP client."""
         self._http.close()
@@ -115,7 +123,10 @@ class MetadataClient:
 
     def delete_scope(self, scope_slug: str) -> None:
         """``DELETE …/scopes/{scopeSlug}`` — remove a scope (204)."""
-        seg = encode_metadata_entity_path_segment(scope_slug)
+        seg = encode_metadata_prefixed_path_segment(
+            scope_slug,
+            "urn:mill/metadata/scope:",
+        )
         r = self._http.delete(f"{self._prefix}/scopes/{seg}")
         raise_for_status(r, request_headers=dict(r.request.headers))
 
@@ -293,7 +304,7 @@ class MetadataClient:
         origin: str | None = None,
     ) -> list[FacetInstanceDto]:
         """``GET …/entities/{id}/facets/{typeKey}``."""
-        tk = self._entity_segment(type_key)
+        tk = self._facet_type_segment(type_key)
         r = self._http.get(
             f"{self._entities}/{self._entity_segment(entity_id)}/facets/{tk}",
             params=self._read_context_params(scope, context, origin) or None,
@@ -337,7 +348,7 @@ class MetadataClient:
         params: dict[str, str] = {}
         if scope is not None:
             params["scope"] = scope
-        tk = self._entity_segment(type_key)
+        tk = self._facet_type_segment(type_key)
         r = self._http.post(
             f"{self._entities}/{self._entity_segment(entity_id)}/facets/{tk}",
             params=params or None,
@@ -358,7 +369,7 @@ class MetadataClient:
         payload: Any,
     ) -> FacetInstanceDto:
         """``PATCH …/entities/{id}/facets/{typeKey}/{facetUid}``."""
-        tk = self._entity_segment(type_key)
+        tk = self._facet_type_segment(type_key)
         fu = self._entity_segment(facet_uid)
         r = self._http.patch(
             f"{self._entities}/{self._entity_segment(entity_id)}/facets/{tk}/{fu}",
@@ -378,7 +389,7 @@ class MetadataClient:
         facet_uid: str,
     ) -> None:
         """``DELETE …/entities/{id}/facets/{typeKey}/{facetUid}`` (204)."""
-        tk = self._entity_segment(type_key)
+        tk = self._facet_type_segment(type_key)
         fu = self._entity_segment(facet_uid)
         r = self._http.delete(
             f"{self._entities}/{self._entity_segment(entity_id)}/facets/{tk}/{fu}",
@@ -393,7 +404,7 @@ class MetadataClient:
         scope: str,
     ) -> None:
         """``DELETE …/entities/{id}/facets/{typeKey}?scope=…`` (204)."""
-        tk = self._entity_segment(type_key)
+        tk = self._facet_type_segment(type_key)
         r = self._http.delete(
             f"{self._entities}/{self._entity_segment(entity_id)}/facets/{tk}",
             params={"scope": scope},
@@ -437,7 +448,7 @@ class MetadataClient:
 
     def get_facet_type(self, type_key: str) -> FacetTypeManifestDto:
         """``GET …/facets/{typeKey}``."""
-        seg = self._entity_segment(type_key)
+        seg = self._facet_type_segment(type_key)
         r = self._http.get(
             f"{self._prefix}/facets/{seg}",
             headers={"Accept": "application/json"},
@@ -464,7 +475,7 @@ class MetadataClient:
 
     def update_facet_type(self, type_key: str, manifest: dict[str, Any]) -> FacetTypeManifestDto:
         """``PUT …/facets/{typeKey}``."""
-        seg = self._entity_segment(type_key)
+        seg = self._facet_type_segment(type_key)
         body = json.dumps(manifest)
         r = self._http.put(
             f"{self._prefix}/facets/{seg}",
@@ -479,7 +490,7 @@ class MetadataClient:
 
     def delete_facet_type(self, type_key: str) -> None:
         """``DELETE …/facets/{typeKey}`` (204)."""
-        seg = self._entity_segment(type_key)
+        seg = self._facet_type_segment(type_key)
         r = self._http.delete(f"{self._prefix}/facets/{seg}")
         raise_for_status(r, request_headers=dict(r.request.headers))
 

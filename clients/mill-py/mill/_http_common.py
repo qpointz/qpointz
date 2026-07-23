@@ -108,17 +108,39 @@ def raise_for_status(
 
 
 def encode_metadata_entity_path_segment(entity_id: str) -> str:
-    """Percent-encode a metadata entity ``{id}`` path segment for REST.
+    """Encode a metadata entity ``{id}`` as a slash-free REST path segment.
 
-    Accepts a raw URN or slug; encodes so ``/`` becomes ``%2F`` per server rules.
+    Full URNs use Mill's generic ``UrnSlug`` representation: drop ``urn:``,
+    escape literal ``-`` as ``--``, then replace ``/`` with ``-``. This is
+    required because servlet containers reject ``%2F`` before controller code
+    can decode the entity identifier. Existing slug inputs remain supported.
 
     Args:
         entity_id: Entity URN or slug as returned by APIs (not pre-encoded).
 
     Returns:
-        A single path segment safe to append after ``.../entities/``.
+        A percent-encoded, slash-free path segment.
     """
-    return quote(entity_id, safe="")
+    value = entity_id.strip()
+    if value.lower().startswith("urn:"):
+        value = value[4:].replace("-", "--").replace("/", "-")
+    return quote(value, safe="")
+
+
+def encode_metadata_prefixed_path_segment(value: str, urn_prefix: str) -> str:
+    """Encode a namespace-owned URN or local key for a REST path segment.
+
+    Scope and facet-type controllers own a fixed URN namespace, so their paths
+    use only the local part rather than the generic full ``UrnSlug`` form.
+    """
+    raw = value.strip()
+    if raw.lower().startswith(urn_prefix.lower()):
+        raw = raw[len(urn_prefix):]
+    elif raw.lower().startswith("urn:"):
+        raise ValueError(f"URN {value!r} does not belong to namespace {urn_prefix!r}")
+    if not raw:
+        raise ValueError("Metadata path key must not be blank")
+    return quote(raw, safe="")
 
 
 def build_platform_client(

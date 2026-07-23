@@ -6,6 +6,7 @@ import pytest
 
 from mill._http_common import (
     encode_metadata_entity_path_segment,
+    encode_metadata_prefixed_path_segment,
     jet_base_url,
     normalize_base_path,
     platform_client_headers,
@@ -32,7 +33,25 @@ def test_platform_headers_only_authorization() -> None:
 
 
 def test_encode_metadata_entity_path_segment() -> None:
-    assert encode_metadata_entity_path_segment("urn:mill/x:y:a/b") == "urn%3Amill%2Fx%3Ay%3Aa%2Fb"
+    assert encode_metadata_entity_path_segment("urn:mill/x:y:a/b") == "mill-x%3Ay%3Aa-b"
+
+
+def test_encode_metadata_entity_path_segment_escapes_literal_hyphens() -> None:
+    assert encode_metadata_entity_path_segment("urn:mill/x-y:a/b") == "mill-x--y%3Aa-b"
+
+
+def test_encode_metadata_prefixed_path_segment() -> None:
+    prefix = "urn:mill/metadata/facet-type:"
+    assert encode_metadata_prefixed_path_segment(f"{prefix}examples-demo", prefix) == "examples-demo"
+    assert encode_metadata_prefixed_path_segment("descriptive", prefix) == "descriptive"
+
+
+def test_encode_metadata_prefixed_path_segment_rejects_foreign_urn() -> None:
+    with pytest.raises(ValueError, match="does not belong"):
+        encode_metadata_prefixed_path_segment(
+            "urn:mill/model/table:public.orders",
+            "urn:mill/metadata/facet-type:",
+        )
 
 
 def test_raise_for_status_ok() -> None:
